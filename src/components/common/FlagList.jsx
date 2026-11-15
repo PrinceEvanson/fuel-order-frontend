@@ -1,7 +1,7 @@
 const STYLE = {
   error: 'border-red-200 bg-red-50 text-red-800',
-  warn: 'border-amber-200 bg-amber-50 text-amber-900',
-  info: 'border-slate-200 bg-slate-50 text-slate-700',
+  warn: 'border-slate-200 border-l-4 border-l-slate-700 bg-slate-100 text-slate-800',
+  info: 'border-slate-200 bg-white text-slate-600',
 }
 
 export default function FlagList({ flags = [] }) {

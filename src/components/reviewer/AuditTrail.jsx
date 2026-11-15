@@ -3,7 +3,7 @@ import { api } from '../../lib/api.js'
 
 const LABEL = {
   uploaded: 'Uploaded', redo_requested: 'Client asked for a redo', submitted: 'Sent to review', discarded: 'Discarded by client',
-  edited: 'Edited by reviewer', rejected: 'Rejected', approved_and_posted: 'Approved and posted to Sage', post_failed: 'Sage rejected the post',
+  edited: 'Edited by reviewer', rescanned: 'Re-read with AI', rejected: 'Rejected', approved_and_posted: 'Approved and posted to Sage', post_failed: 'Sage rejected the post',
 }
 
 export default function AuditTrail({ docId, refreshKey }) {

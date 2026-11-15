@@ -18,7 +18,7 @@ export default function AppShell({ title, subtitle, notice, wide = false, childr
                 <div className="font-medium">{user?.name}</div>
                 <div className="text-xs capitalize text-emerald-300">{user?.role}</div>
               </div>
-              <button onClick={logout} className="rounded-lg border border-slate-600 px-3 py-1.5 hover:bg-slate-800">Sign out</button>
+              <button onClick={logout} className="rounded-lg border border-slate-600 px-3 py-1.5 transition hover:border-red-600 hover:bg-red-600">Sign out</button>
             </div>
             {notice}
           </div>

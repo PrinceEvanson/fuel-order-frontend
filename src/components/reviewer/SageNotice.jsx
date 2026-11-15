@@ -15,11 +15,11 @@ export default function SageNotice() {
   if (!status && !error) return null
 
   const connected = status?.connected
-  const tone = connected ? 'bg-emerald-500/15 text-emerald-200 ring-emerald-400/40' : 'bg-amber-400/15 text-amber-200 ring-amber-300/40'
+  const tone = connected ? 'bg-emerald-500/15 text-emerald-200 ring-emerald-400/40' : 'bg-red-500/15 text-red-200 ring-red-400/40'
 
   return (
     <div role="status" className={`flex max-w-md items-center gap-2 rounded-full px-3 py-1 text-xs ring-1 ${tone}`}>
-      <span className={`h-2 w-2 shrink-0 rounded-full ${connected ? 'bg-emerald-400' : 'bg-amber-300'}`} />
+      <span className={`h-2 w-2 shrink-0 rounded-full ${connected ? 'bg-emerald-400' : 'bg-red-400'}`} />
       <span className="truncate">
         {error
           ? error

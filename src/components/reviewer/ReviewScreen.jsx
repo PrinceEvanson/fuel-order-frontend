@@ -6,6 +6,14 @@ import StatusPill from '../common/StatusPill.jsx'
 import ExtractedForm from './ExtractedForm.jsx'
 import RejectDialog from './RejectDialog.jsx'
 import AuditTrail from './AuditTrail.jsx'
+import MetricsPanel from './MetricsPanel.jsx'
+
+const TABS = [
+  ['checks', 'Checks'],
+  ['details', 'Details'],
+  ['units', 'Currency and units'],
+  ['history', 'History'],
+]
 
 export default function ReviewScreen({ docId, onChanged, onClose }) {
   const [doc, setDoc] = useState(null)
@@ -15,6 +23,7 @@ export default function ReviewScreen({ docId, onChanged, onClose }) {
   const [ack, setAck] = useState(false)
   const [rejecting, setRejecting] = useState(false)
   const [auditKey, setAuditKey] = useState(0)
+  const [tab, setTab] = useState('checks')
 
   useEffect(() => {
     setDoc(null); setError(''); setBlockers([]); setAck(false)
@@ -22,7 +31,7 @@ export default function ReviewScreen({ docId, onChanged, onClose }) {
   }, [docId])
 
   if (error && !doc) return <p className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{error}</p>
-  if (!doc) return <p className="p-6 text-sm text-slate-500">Loading...</p>
+  if (!doc) return <p className="rounded-2xl bg-white p-6 text-sm text-slate-500">Loading...</p>
 
   const actionable = doc.status === 'submitted' || doc.status === 'post_failed'
   const warns = doc.flags.filter((f) => f.severity === 'warn')
@@ -37,67 +46,101 @@ export default function ReviewScreen({ docId, onChanged, onClose }) {
 
   const save = (body) => run(async () => { setDoc(await api.edit(doc.id, body)); setAck(false); onChanged() })
   const approve = () => run(async () => { setDoc(await api.approve(doc.id, ack)); onChanged() })
+  const rescan = () => run(async () => { setDoc(await api.rescan(doc.id)); setAck(false); onChanged() })
   const reject = (reason) => run(async () => { setDoc(await api.reject(doc.id, reason)); setRejecting(false); onChanged() })
 
+  const last = doc.feedback?.at(-1)
+
   return (
-    <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="font-semibold">{doc.filename}</h2>
-          <p className="text-xs text-slate-500">From {doc.owner} | uploaded {new Date(doc.created_at).toLocaleString()} | scan attempt #{doc.attempts}</p>
+    <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
+        <div className="min-w-0">
+          <h2 className="truncate text-lg font-semibold text-slate-900">{doc.customer_name || doc.filename}</h2>
+          <p className="truncate text-xs text-slate-500">
+            {doc.filename} | from {doc.owner} | {new Date(doc.created_at).toLocaleString()} | scan attempt #{doc.attempts}
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <StatusPill value={doc.ai_status} /><StatusPill value={doc.status} />
-          <button onClick={onClose} aria-label="Close preview" className="ml-1 rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-100">Close</button>
+          <StatusPill value={doc.ai_status} />
+          <StatusPill value={doc.status} />
+          <button onClick={onClose} aria-label="Close preview"
+            className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 transition hover:border-red-600 hover:bg-red-600 hover:text-white">
+            Close
+          </button>
         </div>
-      </div>
+      </header>
 
-      {doc.feedback?.length > 0 && (
-        <p className="mb-3 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-700">
-          The client redid this scan {doc.feedback.length}x - last issue reported: {doc.feedback.at(-1).error_types.join(', ').replaceAll('_', ' ') || '-'}
-          {doc.feedback.at(-1).comment && ` - "${doc.feedback.at(-1).comment}"`}
+      {last && (
+        <p className="border-b border-slate-200 bg-slate-50 px-5 py-2 text-xs text-slate-600">
+          The client redid this scan {doc.feedback.length}x. Last issue reported: {last.error_types.join(', ').replaceAll('_', ' ') || '-'}
+          {last.comment && ` - "${last.comment}"`}
         </p>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <PdfViewer docId={doc.id} className="h-[75vh]" />
-        <div className="max-h-[75vh] space-y-4 overflow-y-auto pr-1">
-          <FlagList flags={doc.flags} />
-          <ExtractedForm doc={doc} onSave={save} saving={busy} readOnly={!actionable} />
-          <AuditTrail docId={doc.id} refreshKey={auditKey} />
+      <div className="grid xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+        <div className="border-slate-200 bg-slate-50 p-4 xl:border-r">
+          <PdfViewer docId={doc.id} className="h-[70vh]" />
+        </div>
+
+        <div className="min-w-0">
+          <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-slate-200 px-3 pt-2">
+            {TABS.map(([key, label]) => (
+              <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)}
+                className={`-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition ${tab === key ? 'border-emerald-600 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+                {label}
+                {key === 'checks' && doc.flags.length > 0 && (
+                  <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs ${hasErrors ? 'bg-red-100 text-red-800' : 'bg-slate-200 text-slate-700'}`}>{doc.flags.length}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="max-h-[64vh] overflow-y-auto p-4">
+            <div className={tab === 'checks' ? '' : 'hidden'}><FlagList flags={doc.flags} /></div>
+            <div className={tab === 'details' ? '' : 'hidden'}><ExtractedForm doc={doc} onSave={save} saving={busy} readOnly={!actionable} /></div>
+            <div className={tab === 'units' ? '' : 'hidden'}><MetricsPanel key={doc.id} doc={doc} /></div>
+            <div className={tab === 'history' ? '' : 'hidden'}><AuditTrail docId={doc.id} refreshKey={auditKey} /></div>
+          </div>
         </div>
       </div>
 
       {doc.status === 'posted' && (
-        <p className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <p className="border-t border-emerald-200 bg-emerald-50 px-5 py-3 text-sm text-emerald-800">
           Sage quote <b>{doc.sage_quote_number}</b> created by {doc.reviewed_by}.{' '}
           {doc.sage_url && <a className="underline" href={doc.sage_url} target="_blank" rel="noreferrer">Open in Sage</a>}
         </p>
       )}
-      {doc.status === 'rejected' && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">Rejected by {doc.reviewed_by}: {doc.reject_reason}</p>}
-      {doc.status === 'post_failed' && doc.sage_error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">Sage error: {doc.sage_error}</p>}
+      {doc.status === 'rejected' && <p className="border-t border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800">Rejected by {doc.reviewed_by}: {doc.reject_reason}</p>}
+      {doc.status === 'post_failed' && doc.sage_error && <p className="border-t border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800">Sage error: {doc.sage_error}</p>}
 
       {error && (
-        <div role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div role="alert" className="border-t border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800">
           <p className="font-medium">{error}</p>
           {blockers.length > 0 && <ul className="mt-1 list-disc pl-5">{blockers.map((b, i) => <li key={i}>{b.message}</li>)}</ul>}
         </div>
       )}
 
       {actionable && (
-        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4">
+        <footer className="flex flex-wrap items-center gap-3 border-t border-slate-200 bg-slate-50 px-5 py-3">
           {warns.length > 0 && !hasErrors && (
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
               <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> I have reviewed the {warns.length} warning{warns.length > 1 ? 's' : ''}
             </label>
           )}
           <button onClick={approve} disabled={busy || hasErrors || (warns.length > 0 && !ack)}
-            className="rounded-lg bg-emerald-600 px-5 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50">
-            {busy ? 'Working...' : 'Approve & post to Sage'}
+            className="rounded-lg bg-emerald-600 px-5 py-2 font-medium text-white transition hover:bg-emerald-700 disabled:opacity-50">
+            {busy ? 'Working...' : 'Approve and post to Sage'}
           </button>
-          <button onClick={() => setRejecting(true)} disabled={busy} className="rounded-lg border border-red-400 px-5 py-2 font-medium text-red-700 hover:bg-red-50">Reject...</button>
-          {hasErrors && <span className="text-xs text-slate-500">Resolve the red flags (edit fields or pick a match) or reject.</span>}
-        </div>
+          <button onClick={() => setRejecting(true)} disabled={busy}
+            className="rounded-lg border border-red-500 px-5 py-2 font-medium text-red-700 transition hover:bg-red-600 hover:text-white disabled:opacity-50">
+            Reject
+          </button>
+          <button onClick={rescan} disabled={busy}
+            className="rounded-lg border border-slate-400 px-5 py-2 font-medium text-slate-700 transition hover:bg-slate-200 disabled:opacity-50">
+            {busy ? 'Working...' : 'Re-read with AI'}
+          </button>
+          {hasErrors && <span className="text-xs text-slate-500">Fix the red checks in Details, or reject.</span>}
+        </footer>
       )}
 
       {rejecting && <RejectDialog busy={busy} onConfirm={reject} onCancel={() => setRejecting(false)} />}
