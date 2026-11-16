@@ -36,7 +36,7 @@ export default function DocumentQueue({ bucket, onBucket, items, counts, selecte
           </svg>
           <input
             type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search customer, PO, file or sender"
+            placeholder=""
             aria-label="Search documents"
             className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-200"
           />
