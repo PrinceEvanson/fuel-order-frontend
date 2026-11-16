@@ -13,7 +13,7 @@ const matches = (d, q) =>
   [d.customer_name, d.filename, d.po_number, d.owner, d.status, d.ai_status]
     .some((v) => String(v || '').toLowerCase().includes(q))
 
-export default function DocumentQueue({ bucket, onBucket, items, counts, selectedId, onSelect, loading, compact }) {
+export default function DocumentQueue({ bucket, onBucket, items, counts, selectedId, onSelect, loading, compact, busy = {} }) {
   const [query, setQuery] = useState('')
   const q = query.trim().toLowerCase()
   const shown = q ? items.filter((d) => matches(d, q)) : items
@@ -67,8 +67,12 @@ export default function DocumentQueue({ bucket, onBucket, items, counts, selecte
                       : <div className="truncate text-xs text-slate-500">PO {d.po_number || '-'} | from {d.owner} | {d.filename}</div>}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
-                    <StatusPill value={d.status === 'submitted' ? d.ai_status : d.status} />
-                    {d.flag_count > 0 && d.status === 'submitted' && <span className="text-xs text-red-700">{d.flag_count} issue{d.flag_count > 1 ? 's' : ''}</span>}
+                    {busy[d.id]
+                      ? <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                          <span className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />Reading
+                        </span>
+                      : <StatusPill value={d.status === 'submitted' ? d.ai_status : d.status} />}
+                    {!busy[d.id] && d.flag_count > 0 && d.status === 'submitted' && <span className="text-xs text-red-700">{d.flag_count} issue{d.flag_count > 1 ? 's' : ''}</span>}
                   </div>
                 </button>
               </li>

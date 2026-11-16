@@ -1,7 +1,7 @@
 const POINTS = [
   'Upload a PDF and see exactly what was read from it',
   'Problems are flagged, never silently fixed',
-  'A person approves every order before it is posted',
+  'Qualified personnel approves every order before it is posted to Sage',
 ]
 
 export default function AuthLayout({ title, subtitle, children, footer }) {
@@ -10,10 +10,10 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
       <div className="relative hidden flex-col justify-between overflow-hidden bg-slate-900 p-12 text-white lg:flex">
         <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-emerald-600/30 blur-3xl" />
         <div className="absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl" />
-        <div className="relative text-sm font-semibold uppercase tracking-widest text-emerald-400">Fuel Order Desk</div>
+        <div className="relative text-sm font-semibold uppercase tracking-widest text-emerald-400">OctaneIQ</div>
         <div className="relative space-y-8">
           <h2 className="max-w-md text-4xl font-semibold leading-tight">
-            From purchase order to pro-forma invoice, without the retyping.
+            Fuel orders, done right Every time with Claude
           </h2>
           <ul className="space-y-3 text-slate-300">
             {POINTS.map((p) => (
@@ -24,7 +24,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-slate-400">Built for fuel orders across Kenya, Uganda and Tanzania.</p>
+        <p className="relative text-xs text-slate-400">Built for fuel orders across Borders.</p>
       </div>
       <div className="flex items-center justify-center bg-white p-6 sm:p-12">
         <div className="w-full max-w-sm">

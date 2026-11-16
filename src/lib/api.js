@@ -62,6 +62,7 @@ export const api = {
   audit: (id) => request(`/api/review/documents/${id}/audit`),
   edit: (id, body) => request(`/api/review/documents/${id}/fields`, { method: 'PUT', body }),
   reject: (id, reason) => request(`/api/review/documents/${id}/reject`, { method: 'POST', body: { reason } }),
+  analyse: (id) => request(`/api/review/documents/${id}/analyse`, { method: 'POST' }),
   rescan: (id) => request(`/api/review/documents/${id}/rescan`, { method: 'POST' }),
   approve: (id, acknowledge_warnings) => request(`/api/review/documents/${id}/approve`, { method: 'POST', body: { acknowledge_warnings } }),
 
