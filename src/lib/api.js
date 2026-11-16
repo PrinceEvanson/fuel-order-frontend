@@ -1,4 +1,5 @@
-const BASE = import.meta.env.VITE_API_URL || ''
+const rawBase = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '')
+const BASE = rawBase && !/^https?:\/\//i.test(rawBase) ? `https://${rawBase}` : rawBase
 const KEY = 'fuel_token'
 
 export const tokenStore = {

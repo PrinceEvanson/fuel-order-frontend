@@ -47,8 +47,8 @@ export default function SignupForm() {
       <label className="block text-sm font-medium text-slate-700">
         Account type
         <select value={form.role} onChange={set('role')} className={field}>
-          <option value="client">Client - Upload Purchase Orders</option>
-          <option value="reviewer">Reviewer - Check & Post Orders</option>
+          <option value="client">Client - upload purchase orders</option>
+          <option value="reviewer">Reviewer - check and post orders (invite code needed)</option>
         </select>
       </label>
       {form.role === 'reviewer' && (
